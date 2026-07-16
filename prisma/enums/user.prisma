@@ -1,0 +1,10 @@
+enum UserType {
+  SUPERADMIN
+  EXECUTIVE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
