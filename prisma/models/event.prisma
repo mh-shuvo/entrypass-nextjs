@@ -1,0 +1,21 @@
+model Event{
+    id          Int             @id              @default(autoincrement())
+    event_slug  String          @db.VarChar(110) @unique
+
+    title       String          @db.VarChar(100)
+    description String?         @db.Text
+    
+    startDate   DateTime
+    endDate     DateTime
+
+    regStart   DateTime?
+    regEnd     DateTime?
+
+    status     EVENT_STATUS                     @default(DRAFT)
+
+    createdAt  DateTime                         @default(now())
+    updatedAt  DateTime                         @updatedAt
+    deletedAt  DateTime?
+
+    @@map("events")
+}

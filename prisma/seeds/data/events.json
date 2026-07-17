@@ -1,0 +1,52 @@
+[
+  {
+    "event_slug": "laravel-mastery-workshop-2026",
+    "title": "Laravel Mastery Workshop 2026",
+    "description": "A one-day hands-on workshop covering advanced Laravel concepts including queues, events, caching, testing, and deployment.",
+    "startDate": "2026-08-15T09:00:00Z",
+    "endDate": "2026-08-15T17:00:00Z",
+    "regStart": "2026-07-20T00:00:00Z",
+    "regEnd": "2026-08-10T23:59:59Z",
+    "status": "PUBLISHED"
+  },
+  {
+    "event_slug": "nextjs-fullstack-bootcamp",
+    "title": "Next.js Full Stack Bootcamp",
+    "description": "Learn how to build production-ready full stack applications using Next.js App Router, Prisma, and MySQL.",
+    "startDate": "2026-09-05T08:30:00Z",
+    "endDate": "2026-09-06T18:00:00Z",
+    "regStart": "2026-08-01T00:00:00Z",
+    "regEnd": "2026-08-30T23:59:59Z",
+    "status": "PUBLISHED"
+  },
+  {
+    "event_slug": "ai-developer-summit-2026",
+    "title": "AI Developer Summit 2026",
+    "description": "A two-day conference focusing on Generative AI, LLMs, RAG, AI agents, and modern developer tools.",
+    "startDate": "2026-10-10T09:00:00Z",
+    "endDate": "2026-10-11T18:00:00Z",
+    "regStart": "2026-08-15T00:00:00Z",
+    "regEnd": "2026-10-01T23:59:59Z",
+    "status": "DRAFT"
+  },
+  {
+    "event_slug": "cyber-security-awareness-day",
+    "title": "Cyber Security Awareness Day",
+    "description": "An awareness event covering phishing attacks, password security, social engineering, and data protection best practices.",
+    "startDate": "2026-11-20T10:00:00Z",
+    "endDate": "2026-11-20T16:00:00Z",
+    "regStart": "2026-10-01T00:00:00Z",
+    "regEnd": "2026-11-15T23:59:59Z",
+    "status": "PUBLISHED"
+  },
+  {
+    "event_slug": "annual-tech-fest-2026",
+    "title": "Annual Tech Fest 2026",
+    "description": "A flagship technology festival featuring keynote sessions, coding competitions, startup showcases, and networking opportunities.",
+    "startDate": "2026-12-12T09:00:00Z",
+    "endDate": "2026-12-13T20:00:00Z",
+    "regStart": "2026-09-15T00:00:00Z",
+    "regEnd": "2026-12-05T23:59:59Z",
+    "status": "PUBLISHED"
+  }
+]

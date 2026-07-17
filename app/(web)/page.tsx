@@ -1,5 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
 import {UserService} from "@/services/user.service";
 import {UserRepository} from "@/repository/user.repository";
 const userService = new UserService(new UserRepository());

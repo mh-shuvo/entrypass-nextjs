@@ -1,0 +1,7 @@
+enum EVENT_STATUS {
+    DRAFT
+    PUBLISHED
+    ONGOING
+    COMPLETED
+    CANCELLED
+}

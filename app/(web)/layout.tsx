@@ -1,28 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import Image from "next/image";
 import Link from "next/link";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { getServerSession } from "next-auth/next";
+import { geistSans, geistMono } from "../fonts";
+import { authOptions } from "@/auth";
+import AuthNav from "@/components/AuthNav";
 
 export const metadata: Metadata = {
   title: "EntryPass",
   description: "A simple event management system built with Next.js and Tailwind CSS.",
 };
 
-export default function RootLayout({
+export default async function WebLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html
       lang="en"
@@ -59,6 +55,11 @@ export default function RootLayout({
               
               <div className="basis-64">
                 <Link href="/contact">Contact</Link>
+              </div>
+
+              
+              <div className="basis-64">
+                <AuthNav isAuthenticated={!!session} />
               </div>
 
             </div>

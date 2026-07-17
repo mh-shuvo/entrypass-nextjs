@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import {DATABASE_URL} from "@/db/config";
 declare global {
-	// eslint-disable-next-line no-var
 	var prisma: PrismaClient | undefined;
 }
 
