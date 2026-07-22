@@ -3,14 +3,8 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { z } from "zod";
-
-const loginSchema = z.object({
-    email: z.string().trim().email("Enter a valid email address"),
-    password: z.string().min(1, "Password is required"),
-});
-
-type LoginFormState = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormState } from "@/lib/validation/auth";
+import {toast} from "sonner";
 
 export default function Login() {
     const router = useRouter();
@@ -42,7 +36,8 @@ export default function Login() {
 
         const parsedResult = loginSchema.safeParse(formData);
 
-        if (!parsedResult.success) {
+        try{
+            if (!parsedResult.success) {
             const nextFieldErrors: Partial<Record<keyof LoginFormState, string>> = {};
 
             for (const issue of parsedResult.error.issues) {
@@ -58,20 +53,32 @@ export default function Login() {
             return;
         }
 
-        const result = await signIn("credentials", {
+        const result = await signIn("admin", {
             email: parsedResult.data.email,
             password: parsedResult.data.password,
             redirect: false,
         });
 
         if (result?.error) {
-            setFormError("Invalid organizer credentials");
-            setIsSubmitting(false);
+            if (result.error === "RateLimited") {
+                setFormError("Too many login attempts. Please wait a moment and try again.");
+            } else {
+                setFormError("Invalid organizer credentials");
+            }
             return;
         }
-
-        router.push("/");
+        toast.success("Successfully signed in!");
+        router.push("/dashboard");
         router.refresh();
+
+        }
+        catch (error) {
+            const description = error instanceof Error ? error.message : undefined;
+            toast.error("An unexpected error occurred. Please try again.", { description });
+        }
+        finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (

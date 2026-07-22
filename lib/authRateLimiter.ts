@@ -3,8 +3,8 @@ import {Redis} from '@upstash/redis'
 
 const redis = Redis.fromEnv()
 
-export const staticRateLimit = new Ratelimit({
+export const authRateLimiter = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(10, '1 m'),
+    limiter: Ratelimit.slidingWindow(1, '1 m'),
     analytics: true,
 })

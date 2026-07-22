@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { geistSans, geistMono } from "../fonts";
-import { authOptions } from "@/auth";
+import { authOptions } from "@/lib/auth";
 import AuthNav from "@/components/AuthNav";
-
+import { Toaster } from 'sonner';
 export const metadata: Metadata = {
   title: "EntryPass",
   description: "A simple event management system built with Next.js and Tailwind CSS.",
@@ -68,6 +68,7 @@ export default async function WebLayout({
 
         </div>
         {children}
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
