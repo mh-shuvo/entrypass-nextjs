@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 
 export default function SidebarUserMenu() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -20,9 +20,6 @@ export default function SidebarUserMenu() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (status === "loading") {
-    return <div className="px-3 py-2 text-sm text-zinc-500">Loading...</div>;
-  }
 
   const displayName = session?.user?.name ?? session?.user?.email ?? "Account";
 
