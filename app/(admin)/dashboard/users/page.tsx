@@ -3,17 +3,27 @@ import { pageTitle } from "@/lib/metadata";
 import {UserService} from "@/services/user.service";
 import {UserRepository} from "@/repository/user.repository";
 import prisma from "@/lib/prisma";
+import CreateNewUserButton  from "@/components/User/CreateNewUserButton";
 
 const userService = new UserService(new UserRepository());
 export const metadata: Metadata = pageTitle("User List");
+
 
 export default async function UserListPage() {
   const users = await userService.getAllUsers();
   const totalUsers = await prisma.user.count();
   const totalPages = Math.ceil(totalUsers / 10);
+
   return (
     <div>
-      <h1 className="text-3xl">User List</h1>
+      <div className="flex justify-between">
+                <span>
+                <h1 className="text-3xl">User List</h1>
+                </span>
+                <span>
+                <CreateNewUserButton />
+                </span>
+            </div>
       <hr />
       <table className="table-auto w-full mt-4 border-collapse border border-gray-300 dark:border-gray-700">
         <thead>
