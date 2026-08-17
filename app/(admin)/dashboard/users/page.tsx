@@ -42,11 +42,7 @@ export default async function UserListPage() {
                 <td className="border px-4 py-2">{user.email}</td>
                 <td className="border px-4 py-2 flex space-x-2">
                   <button className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded text-sm">
-                    Edit
-                  </button>
-
-                  <button className="bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded text-sm">
-                    Delete
+                    View
                   </button>
                 </td>
               </tr>

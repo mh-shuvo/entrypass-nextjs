@@ -1,11 +1,28 @@
 "use client";
+import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+
 interface NewUserModalProps {
     isOpen:boolean,
     onClose: () => void,
     modalTitle:string
 
 }
+
+type PasswordField = "password" | "confirmPassword";
+
 export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalProps) {
+
+    const [visiblePasswords, setVisiblePasswords] = useState<Record<PasswordField, boolean>>({
+        password: false,
+        confirmPassword: false,
+    });
+
+    const togglePasswordVisibility = (field: PasswordField) => {
+        setVisiblePasswords((prev) => ({ ...prev, [field]: !prev[field] }));
+    };
+
     if(!isOpen){
         return null;
     }
@@ -49,6 +66,48 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
                             placeholder="Email Address"
                             autoComplete="email"
                         />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" htmlFor="password">
+                            Password
+                        </label>
+                        <div className="relative">
+                            <input
+                                className="w-full rounded border px-3 py-2 leading-tight text-gray-700 shadow appearance-none focus:outline-none focus:shadow-outline dark:text-gray-300"
+                                id="password"
+                                name="password"
+                                type={visiblePasswords.password ? "text" : "password"}
+                                placeholder="secure-password"
+                                autoComplete="password"
+                            />
+                            <button type="button"
+                            onClick={() => togglePasswordVisibility("password")}
+                            aria-label="Toggle password visibility" className="absolute inset-y-0 inset-e-0 flex items-center z-20 px-3 cursor-pointer text-muted-foreground rounded-e-md focus:outline-hidden focus:text-primary-focus">
+                              <FontAwesomeIcon icon={visiblePasswords.password ? faEyeSlash : faEye} className="size-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" htmlFor="confirm-password">
+                            Confirm Password
+                        </label>
+                        <div className="relative">
+                            <input
+                                className="w-full rounded border px-3 py-2 leading-tight text-gray-700 shadow appearance-none focus:outline-none focus:shadow-outline dark:text-gray-300"
+                                id="confirm-password"
+                                name="confirm-password"
+                                type={visiblePasswords.confirmPassword ? "text" : "password"}
+                                placeholder="secure-password"
+                                autoComplete="confirm-password"
+                            />
+                            <button type="button"
+                            onClick={() => togglePasswordVisibility("confirmPassword")}
+                            aria-label="Toggle confirm password visibility" className="absolute inset-y-0 inset-e-0 flex items-center z-20 px-3 cursor-pointer text-muted-foreground rounded-e-md focus:outline-hidden focus:text-primary-focus">
+                              <FontAwesomeIcon icon={visiblePasswords.confirmPassword ? faEyeSlash : faEye} className="size-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
