@@ -12,6 +12,10 @@ export default function CreateNewUserButton(){
         setIsOpen(false);
     }
 
+    const handleUserFormSubmit = async(event:FormEvent<HTMLFormElement>)=>{
+        alert("Saved")
+    }
+
     return (
         <>
                 <button
@@ -20,7 +24,7 @@ export default function CreateNewUserButton(){
                 >
                     Create New
                 </button>
-                <UserModal isOpen={isOpen} onClose={closeButtonHandler} modalTitle={'Add New User'}/>
+                <UserModal isOpen={isOpen} onClose={closeButtonHandler} modalTitle={'Add New User'} handleUserFormSubmit={handleUserFormSubmit} />
         </>
     )
 }
