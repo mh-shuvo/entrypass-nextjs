@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import {UserCreateSchema,UserCreateState} from "@/lib/validation/user.ts"
+import {UserCreateSchema,UserCreateState} from "@/lib/validation/user";
+import { ChangeEvent, FormEvent } from "react";
+import { toast } from "sonner";
 interface NewUserModalProps {
     isOpen:boolean,
     onClose: () => void,
@@ -22,7 +24,7 @@ export default function UserModal({ isOpen, onClose,modalTitle,handleUserFormSub
     const togglePasswordVisibility = (field: PasswordField) => {
         setVisiblePasswords((prev) => ({ ...prev, [field]: !prev[field] }));
     };
-    const [isSubmitting,setIsSubmitting] = useState<boolean>(false,[])
+    const [isSubmitting,setIsSubmitting] = useState<boolean>(false)
     const [formData, setFormData] = useState<UserCreateState>({ name:"", email:"",password:"",confirmPassword:"" })
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserCreateState, string>>>({});
@@ -63,7 +65,7 @@ export default function UserModal({ isOpen, onClose,modalTitle,handleUserFormSub
                 const nextFieldErrors: Partial<Record<keyof UserCreateState, string>> = {};
 
                 for (const issue of parsedResult.error.issues) {
-                    const fieldName = issue.path[0];
+                    const fieldName = issue.path[0] as keyof UserCreateState;
                     if (!nextFieldErrors[fieldName]) {
                         nextFieldErrors[fieldName] = issue.message;
                     }

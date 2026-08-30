@@ -13,9 +13,9 @@ export class UserRepository {
         createdAt: "desc",
       },
     });
-  },
+  }
 
   async create(data:Prisma.UserCreateInput){
     return prisma.user.create({data})
-  },
+  }
 }
