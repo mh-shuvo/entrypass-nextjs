@@ -9,12 +9,6 @@ export class UserService {
     }
 
     async createUser(payload:UserCreateState){
-        // 1. Validate shape/format — same schema your form already uses
-        const parsed = UserCreateSchema.parse(payload); // throws ZodError if invalid
-
-        // 2. Business rule: passwords must match
-        if (parsed.password !== parsed.confirmPassword) {
-          throw new Error("Passwords do not match");
-        }
+        //TODO: Remove confirm password and hash the password then store password
     }
 }

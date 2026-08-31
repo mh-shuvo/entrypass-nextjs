@@ -5,16 +5,16 @@ import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import {UserCreateSchema,UserCreateState} from "@/lib/validation/user";
 import { ChangeEvent, FormEvent } from "react";
 import { toast } from "sonner";
+import {createUserAction} from "@/app/actions/user"
 interface NewUserModalProps {
     isOpen:boolean,
     onClose: () => void,
-    modalTitle:string,
-    handleUserFormSubmit: () => void
+    modalTitle:string
 }
 
 type PasswordField = "password" | "confirmPassword";
 
-export default function UserModal({ isOpen, onClose,modalTitle,handleUserFormSubmit}: NewUserModalProps) {
+export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalProps) {
 
     const [visiblePasswords, setVisiblePasswords] = useState<Record<PasswordField, boolean>>({
         password: false,
@@ -55,32 +55,22 @@ export default function UserModal({ isOpen, onClose,modalTitle,handleUserFormSub
         setFormError("");
     }
 
-    const handleSubmit = (e:FormEvent<HTMLFormElement>)=>{
+    const handleSubmit = async (e:FormEvent<HTMLFormElement>)=>{
         e.preventDefault()
         setIsSubmitting(true)
-        const parsedResult = UserCreateSchema.safeParse(formData);
 
-        try{
-            if (!parsedResult.success) {
-                const nextFieldErrors: Partial<Record<keyof UserCreateState, string>> = {};
-
-                for (const issue of parsedResult.error.issues) {
-                    const fieldName = issue.path[0] as keyof UserCreateState;
-                    if (!nextFieldErrors[fieldName]) {
-                        nextFieldErrors[fieldName] = issue.message;
-                    }
-                }
-
-                setFieldErrors(nextFieldErrors);
-            }
-            else {
-                handleUserFormSubmit();
-                setFormData({ name:"", email:"",password:"",confirmPassword:"" });
-                setFieldErrors({});
-                setFormError("");
-                setVisiblePasswords({ password: false, confirmPassword: false });
-            }
+        try{           
+            const result = await createUserAction(formData)
+            if(!result.success && result?.fieldErrors){
+                setFieldErrors(result?.fieldErrors)
+                return;
+            }                  
+            setFormData({ name:"", email:"",password:"",confirmPassword:"" });
+            setFieldErrors({});
+            setFormError("");
+            setVisiblePasswords({ password: false, confirmPassword: false });
         }
+        
         catch (error) {
             const description = error instanceof Error ? error.message : undefined;
             toast.error("An unexpected error occurred. Please try again.", { description });

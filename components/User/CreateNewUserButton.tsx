@@ -1,6 +1,7 @@
 "use client";
 import {useState} from "react";
 import UserModal from "./UserModal";
+
 export default function CreateNewUserButton(){
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -12,9 +13,6 @@ export default function CreateNewUserButton(){
         setIsOpen(false);
     }
 
-    const handleUserFormSubmit = async(event:FormEvent<HTMLFormElement>)=>{
-        alert("Saved")
-    }
 
     return (
         <>
@@ -24,7 +22,7 @@ export default function CreateNewUserButton(){
                 >
                     Create New
                 </button>
-                <UserModal isOpen={isOpen} onClose={closeButtonHandler} modalTitle={'Add New User'} handleUserFormSubmit={handleUserFormSubmit} />
+                <UserModal isOpen={isOpen} onClose={closeButtonHandler} modalTitle={'Add New User'} />
         </>
     )
 }

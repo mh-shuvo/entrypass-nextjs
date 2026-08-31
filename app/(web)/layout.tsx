@@ -24,7 +24,7 @@ export default async function WebLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <div className="flex flex-row bg-zinc-100 font-sans dark:bg-black">
           <div className="basis-64 p-10">
             <Link href="/">

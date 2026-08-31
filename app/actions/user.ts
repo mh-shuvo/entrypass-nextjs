@@ -1,0 +1,32 @@
+"use server";
+import { UserService } from "@/services/user.service";
+import { UserRepository } from "@/repository/user.repository";
+import {type UserCreateState } from "@/lib/validation/user";
+import {UserCreateSchema} from "@/lib/validation/user";
+
+const userService = new UserService(new UserRepository)
+export type ActionResult<T = void> =
+  | { success: true; data: T }
+  | { success: false; error: string; fieldErrors?: Partial<Record<string, string>> };
+
+export async function createUserAction(payload:UserCreateState): Promise<ActionResult>{
+    // 1. Validate shape/format — same schema your form already uses
+    const parsed = await UserCreateSchema.safeParseAsync(payload);
+    
+    if(!parsed.success){
+        const nextFieldErrors: Partial<Record<keyof UserCreateState, string>> = {};
+        for (const issue of parsed.error.issues) {
+            const fieldName = issue.path[0] as keyof UserCreateState;
+            if (!nextFieldErrors[fieldName]) {
+                nextFieldErrors[fieldName] = issue.message;
+            }
+        }
+        return {
+            success: false,
+            error: "Validation failed",
+            fieldErrors: nextFieldErrors
+        }
+    }
+    await userService.createUser(parsed.data);
+    return { success: true, data: undefined };
+}
