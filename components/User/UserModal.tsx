@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import {UserCreateSchema,UserCreateState} from "@/lib/validation/user";
+import type {UserCreateState} from "@/lib/validation/user";
 import { ChangeEvent, FormEvent } from "react";
 import { toast } from "sonner";
-import {createUserAction} from "@/app/actions/user"
+import {createUserAction} from "@/app/actions/userActions"
 interface NewUserModalProps {
     isOpen:boolean,
     onClose: () => void,
@@ -61,14 +61,17 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
 
         try{           
             const result = await createUserAction(formData)
-            if(!result.success && result?.fieldErrors){
-                setFieldErrors(result?.fieldErrors)
+            if(!result.success){
+                if(result.fieldErrors){
+                    setFieldErrors(result.fieldErrors)
+                } else {
+                    setFormError(result.error)
+                }
                 return;
-            }                  
-            setFormData({ name:"", email:"",password:"",confirmPassword:"" });
-            setFieldErrors({});
-            setFormError("");
-            setVisiblePasswords({ password: false, confirmPassword: false });
+            }
+
+            toast.success("User created successfully!");
+            closeModal();
         }
         
         catch (error) {
@@ -97,6 +100,7 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
                     {modalTitle}
                 </h3>
                 <form onSubmit={handleSubmit}>
+                    {formError ? <p className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p> : null}
                     <div className="mb-6">
                         <div className="mb-4">
                             <label className="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" htmlFor="name">
