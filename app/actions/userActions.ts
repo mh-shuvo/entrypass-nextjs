@@ -1,5 +1,4 @@
 "use server";
-import { refresh } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { UserService } from "@/services/user.service";
 import { UserRepository, type SafeUser } from "@/repository/user.repository";
@@ -14,7 +13,6 @@ export type ActionResult<T = void> =
 export async function createUserAction(payload:UserCreateState): Promise<ActionResult<SafeUser>>{
     // 1. Validate shape/format — same schema your form already uses
     const parsed = await UserCreateSchema.safeParseAsync(payload);
-    
     if(!parsed.success){
         const nextFieldErrors: Partial<Record<keyof UserCreateState, string>> = {};
         for (const issue of parsed.error.issues) {
@@ -31,9 +29,6 @@ export async function createUserAction(payload:UserCreateState): Promise<ActionR
     }
     try {
         const user = await userService.createUser(parsed.data);
-        // The list page reads Prisma directly (no `use cache`), so there is no cache
-        // entry to invalidate — the client router just needs to re-fetch the tree.
-        refresh();
         return { success: true, data: user };
     } catch (error) {
         // The schema's uniqueness check can pass and still lose a race to a

@@ -5,6 +5,7 @@ import { geistSans, geistMono } from "../fonts";
 import Providers from "@/components/Providers";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
 import PrivateLayoutLoading from "@/components/Dashboard/Loading";
+import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: "EntryPass Admin",
   description: "EntryPass admin dashboard.",
@@ -51,6 +52,7 @@ export default function AdminLayout({
                 </div>
             </main>
           </div>
+          <Toaster richColors position="top-right" />
         </Providers>
       </body>
     </html>

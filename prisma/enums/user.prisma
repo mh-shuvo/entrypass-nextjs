@@ -8,3 +8,9 @@ enum UserStatus {
   INACTIVE
   BLOCKED
 }
+
+enum Permission {
+  view_user
+  view_events
+  manage_user
+}

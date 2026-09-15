@@ -6,6 +6,7 @@ import type {UserCreateState} from "@/lib/validation/user";
 import { ChangeEvent, FormEvent } from "react";
 import { toast } from "sonner";
 import {createUserAction} from "@/app/actions/userActions"
+import { useRouter } from "next/navigation";
 interface NewUserModalProps {
     isOpen:boolean,
     onClose: () => void,
@@ -28,6 +29,7 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
     const [formData, setFormData] = useState<UserCreateState>({ name:"", email:"",password:"",confirmPassword:"" })
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserCreateState, string>>>({});
+    const router = useRouter();
 
     const closeModal = ()=>{
         setIsSubmitting(false)
@@ -71,6 +73,7 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
             }
 
             toast.success("User created successfully!");
+            router.refresh();
             closeModal();
         }
         
