@@ -2,7 +2,6 @@ import prisma  from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
 const PAGE_SIZE = 10;
-const page = 1;
 
 // Never selects `password`, so the hash cannot leak into a server action response.
 const safeUserSelect = {
@@ -11,12 +10,15 @@ const safeUserSelect = {
   email: true,
   status: true,
   createdAt: true,
+  updatedAt: true,
+  UserType: true,
 } satisfies Prisma.UserSelect;
+
 
 export type SafeUser = Prisma.UserGetPayload<{ select: typeof safeUserSelect }>;
 
 export class UserRepository {
-  async findAllUsers() {
+  async findAllUsers(page: number = 1): Promise<SafeUser[]> {
     return prisma.user.findMany({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -28,5 +30,12 @@ export class UserRepository {
 
   async create(data:Prisma.UserCreateInput): Promise<SafeUser>{
     return prisma.user.create({data, select: safeUserSelect})
+  }
+
+  async findUserById(id: number): Promise<SafeUser | null> {
+    return prisma.user.findUnique({
+      where: { id },
+      select: safeUserSelect,
+    });
   }
 }

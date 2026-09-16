@@ -5,8 +5,8 @@ import type { UserCreateState } from "@/lib/validation/user";
 export class UserService {
     constructor(private userRepository: UserRepository) {}
 
-    async getAllUsers() {
-        return this.userRepository.findAllUsers();
+    async getAllUsers(page: number = 1): Promise<SafeUser[]> {
+        return this.userRepository.findAllUsers(page);
     }
 
     async createUser(payload:UserCreateState): Promise<SafeUser>{
@@ -18,5 +18,9 @@ export class UserService {
             email: payload.email,
             password: hashedPassword,
         });
+    }
+
+    async getUserById(id: number): Promise<SafeUser | null> {
+        return this.userRepository.findUserById(id);
     }
 }
