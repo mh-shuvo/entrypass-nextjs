@@ -9,6 +9,7 @@ const safeUserSelect = {
   name: true,
   email: true,
   status: true,
+  phone:true,
   createdAt: true,
   updatedAt: true,
   UserType: true,

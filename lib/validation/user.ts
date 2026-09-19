@@ -14,6 +14,7 @@ const UserCreateSchema = z.object({
     ),
     password: z.string().nonempty("Password is required").min(8,"Minimum character length 8"),
     confirmPassword: z.string().nonempty("Confirm Password is required").min(8,"Minimum character length 8"),
+    phone:z.string()
 }).refine((data) => data.password === data.confirmPassword,{
     message: "Password do not match",
     path:['confirmPassword']

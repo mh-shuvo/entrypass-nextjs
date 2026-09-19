@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import type {UserCreateState} from "@/lib/validation/user";
@@ -7,33 +7,43 @@ import { ChangeEvent, FormEvent } from "react";
 import { toast } from "sonner";
 import {createUserAction} from "@/app/actions/userActions"
 import { useRouter } from "next/navigation";
+import { SafeUser } from "@/repository/user.repository";
 interface NewUserModalProps {
     isOpen:boolean,
     onClose: () => void,
-    modalTitle:string
+    modalTitle:string,
+    user?:SafeUser
 }
 
-type PasswordField = "password" | "confirmPassword";
+const createDefaultForm = (user?: SafeUser): UserCreateState => ({
+    name: user?.name ?? "",
+    email: user?.email ?? "",
+    password: "",
+    confirmPassword: "",
+    phone: user?.phone ?? "",
+});
 
-export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalProps) {
+type PasswordField = "password" | "confirmPassword";
+export default function UserModal({ isOpen, onClose,modalTitle,user}: NewUserModalProps) {
 
     const [visiblePasswords, setVisiblePasswords] = useState<Record<PasswordField, boolean>>({
         password: false,
         confirmPassword: false,
     });
+    const [isSubmitting,setIsSubmitting] = useState<boolean>(false)
+    const [formData, setFormData] = useState<UserCreateState>(createDefaultForm)
+    const [formError, setFormError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserCreateState, string>>>({});
+    const router = useRouter();
+    const isEditRequest = Boolean(user)
 
     const togglePasswordVisibility = (field: PasswordField) => {
         setVisiblePasswords((prev) => ({ ...prev, [field]: !prev[field] }));
     };
-    const [isSubmitting,setIsSubmitting] = useState<boolean>(false)
-    const [formData, setFormData] = useState<UserCreateState>({ name:"", email:"",password:"",confirmPassword:"" })
-    const [formError, setFormError] = useState("");
-    const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserCreateState, string>>>({});
-    const router = useRouter();
 
     const closeModal = ()=>{
         setIsSubmitting(false)
-        setFormData({ name:"", email:"",password:"",confirmPassword:"" })
+        setFormData(createDefaultForm(user))
         setFieldErrors({})
         setFormError("")
         setVisiblePasswords({ password: false, confirmPassword: false })
@@ -140,6 +150,24 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
                         </div>
 
                         <div className="mb-4">
+                            <label className="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" htmlFor="email">
+                                Phone
+                            </label>
+                            <input
+                                className="w-full rounded border px-3 py-2 leading-tight text-gray-700 shadow appearance-none focus:outline-none focus:shadow-outline dark:text-gray-300"
+                                id="phone"
+                                name="phone"
+                                type="phone"
+                                placeholder="+8801-xxx-xxx-xxx"
+                                // autoComplete="email"
+                                value={formData.phone}
+                                onChange={(e)=>{handleChange(e)}}
+                            />
+                            {fieldErrors.email ? <p className="mt-2 text-sm text-red-600">{fieldErrors.email}</p> : null}
+                        </div>
+                        
+                        <div className={isEditRequest ? "hidden":""} >
+                            <div className="mb-4">
                             <label className="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" htmlFor="password">
                                 Password
                             </label>
@@ -185,6 +213,7 @@ export default function UserModal({ isOpen, onClose,modalTitle}: NewUserModalPro
                                 </button>
                             </div>
                              {fieldErrors.confirmPassword ? <p className="mt-2 text-sm text-red-600">{fieldErrors.confirmPassword}</p> : null}
+                        </div>
                         </div>
                     </div>
                     
