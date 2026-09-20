@@ -1,6 +1,6 @@
 "use client"
 
-import { UserCreateState, UserPasswordChangeState } from "@/lib/validation/user";
+import {type UserPasswordChangeState } from "@/lib/validation/user";
 import { SafeUser } from "@/repository/user.repository";
 import {useState} from "react"
 import { useRouter } from "next/navigation";
@@ -8,13 +8,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { ChangeEvent, FormEvent } from "react";
 import { toast } from "sonner";
+import {changePasswordAction} from "@/app/actions/userActions"
 interface UserPasswordChangeProps{
     isOpen:boolean,
     onClose:()=>void,
     user:SafeUser
 }
 
-const defaultForm = (user?: SafeUser): UserPasswordChangeState => ({
+const defaultForm = (user: SafeUser): UserPasswordChangeState => ({
     userId: user?.id ?? undefined,
     password: "",
     confirmPassword: "",
@@ -28,7 +29,7 @@ export default function UserPasswordChangeModal({isOpen,onClose,user}:UserPasswo
     const [isSubmitting,setIsSubmitting] = useState<boolean>(false)
     const [formData, setFormData] = useState<UserPasswordChangeState>(() => defaultForm(user))
     const [formError, setFormError] = useState("");
-    const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserCreateState, string>>>({});
+    const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserPasswordChangeState, string>>>({});
     const router = useRouter();
 
     const [visiblePasswords, setVisiblePasswords] = useState<Record<PasswordField, boolean>>({
@@ -70,20 +71,19 @@ export default function UserPasswordChangeModal({isOpen,onClose,user}:UserPasswo
         e.preventDefault()
         setIsSubmitting(true)
 
-        try{           
-            // const result = await createUserAction(formData)
-            // if(!result.success){
-            //     if(result.fieldErrors){
-            //         setFieldErrors(result.fieldErrors)
-            //     } else {
-            //         setFormError(result.error)
-            //     }
-            //     return;
-            // }
-            // const successMsg:string = user ? "User updated successfully!":"User created successfully!";
-            // toast.success(successMsg);
-            // router.refresh();
-            // closeModal();
+        try{
+            const result = await changePasswordAction(formData)
+            if(!result.success){
+                if(result.fieldErrors){
+                    setFieldErrors(result.fieldErrors)
+                } else {
+                    setFormError(result.error)
+                }
+                return;
+            }
+            toast.success("Password successfully updated.");
+            router.refresh();
+            closeModal();
         }
         
         catch (error) {

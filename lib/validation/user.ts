@@ -144,7 +144,6 @@ const UserPasswordChangeSchema = z.object({
         z.number()
             .int("User ID must be a valid integer")
             .positive("User ID must be a positive number")
-            .optional()
             .refine(
                 async (userId) => {
                     if (userId === undefined) return true;

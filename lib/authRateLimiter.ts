@@ -5,6 +5,6 @@ const redis = Redis.fromEnv()
 
 export const authRateLimiter = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(1, '1 m'),
+    limiter: Ratelimit.slidingWindow(100, '1 m'),
     analytics: true,
 })

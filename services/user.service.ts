@@ -1,7 +1,7 @@
 import {UserRepository} from "@/repository/user.repository";
 import type { SafeUser } from "@/repository/user.repository";
 import bcrypt from "bcryptjs";
-import type { UserCreateState } from "@/lib/validation/user";
+import type { UserCreateState, UserPasswordChangeState } from "@/lib/validation/user";
 import prisma from "@/lib/prisma";
 export class UserService {
     constructor(private userRepository: UserRepository) {}
@@ -38,6 +38,22 @@ export class UserService {
                 id: payload.userId,
             },
             data: userData,
+        });
+    }
+
+    async changePassword(payload:UserPasswordChangeState):Promise<SafeUser>{
+        if (!payload.password) {
+                throw new Error("Password is required for create request.");
+            }
+        console.log(payload)
+        const hashedPassword = await bcrypt.hash(payload.password, 10);
+        return prisma.user.update({
+            where: {
+                id: payload.userId,
+            },
+            data: {
+                password:hashedPassword
+            },
         });
     }
 

@@ -2,8 +2,8 @@
 import { Prisma } from "@prisma/client";
 import { UserService } from "@/services/user.service";
 import { UserRepository, type SafeUser } from "@/repository/user.repository";
-import {type UserCreateState } from "@/lib/validation/user";
-import {UserCreateSchema} from "@/lib/validation/user";
+import {type UserPasswordChangeState, type UserCreateState } from "@/lib/validation/user";
+import {UserCreateSchema,UserPasswordChangeSchema} from "@/lib/validation/user";
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache";
 import { authorize } from "@/lib/authz";
@@ -54,6 +54,32 @@ export async function createUserAction(payload:UserCreateState): Promise<ActionR
     }
 }
 
+export async function changePasswordAction(payload:UserPasswordChangeState):Promise<ActionResult>{
+    const parsed = await UserPasswordChangeSchema.safeParseAsync(payload)
+    if(!parsed.success){
+        const nextFieldErrors: Partial<Record<keyof UserPasswordChangeState, string>> = {};
+        for (const issue of parsed.error.issues) {
+            const fieldName = issue.path[0] as keyof UserPasswordChangeState;
+            if (!nextFieldErrors[fieldName]) {
+                nextFieldErrors[fieldName] = issue.message;
+            }
+        }
+        return {
+            success: false,
+            error: "Validation failed",
+            fieldErrors: nextFieldErrors
+        }
+    }
+
+    try {
+        await userService.changePassword(parsed.data);
+        return { success: true, data: undefined };
+    } catch (error) {
+        console.error("changePasswordAction failed", error);
+        return { success: false, error: "Something went wrong. Please try again." }
+    }
+}
+
 export async function deleteUserAction(userId:number):Promise<ActionResult>{
     const authorization = await authorize("manage_user");
     if (!authorization.authorized) {
@@ -92,3 +118,4 @@ export async function deleteUserAction(userId:number):Promise<ActionResult>{
     revalidatePath("/dashboard/users");
     return { success: true, data: undefined };
 }
+

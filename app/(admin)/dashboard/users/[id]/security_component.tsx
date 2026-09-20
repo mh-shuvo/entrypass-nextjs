@@ -5,7 +5,11 @@ import {useState} from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 
-export default function UserSecuritySection(user:SafeUser){
+type UserSecuritySectionProps = {
+    user: SafeUser
+}
+
+export default function UserSecuritySection({user}:UserSecuritySectionProps){
     const [isOpen,setIsOpen] = useState(false)
 
     const closeModal=():void=>{
