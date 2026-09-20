@@ -4,10 +4,10 @@ import { notFound } from "next/navigation";
 import { pageTitle } from "@/lib/metadata";
 import { UserService } from "@/services/user.service";
 import { UserRepository } from "@/repository/user.repository";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 import DeleteUserButton from "@/components/User/DeleteUserButton";
 import UserDetailsCard from "./user_details";
+import UserSecuritySection from "./security_component"
+
 const userService = new UserService(new UserRepository());
 const getUser = cache((id: number) => userService.getUserById(id));
 function parseUserId(rawId: string): number | null {
@@ -51,23 +51,7 @@ export default async function ViewUserPage({ params }: ViewUserPageProps) {
         <>
         <UserDetailsCard user={user} />
 
-        <div className="w-full rounded-2xl border border-slate-300 bg-neutral-secondary-low p-5 mt-3">
-            <p className="text-md font-semibold pb-2">Security</p>
-            <div className="flex justify-between">
-                <div>
-                    <p className="text-sm font-semibold">Change Password</p>
-                    <p className="text-sm text-muted">Receive real-time notifications and team alerts.</p>
-                </div>
-                <div>
-                    <button type="button" className="rounded-xl border border-slate-300 px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        <span className="inline-flex items-center text-[15px]">
-                            <FontAwesomeIcon icon={faPencilAlt} className="mr-2 size-4" aria-hidden="true" />
-                            Change Password
-                        </span>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <UserSecuritySection user={user}/>
 
         <div className="w-full rounded-2xl border border-red-500 bg-neutral-secondary-low p-5 mt-3">
             <p className="text-md font-semibold pb-2 text-red-500">Danger Zone</p>

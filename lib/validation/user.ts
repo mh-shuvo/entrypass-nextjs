@@ -127,5 +127,72 @@ const UserCreateSchema = z.object({
 
 type UserCreateState = z.infer<typeof UserCreateSchema>;
 
-export { UserCreateSchema };
-export type { UserCreateState };
+const UserPasswordChangeSchema = z.object({
+    userId: z.preprocess(
+        (value) => {
+            if (value === undefined || value === null || value === "") {
+                return undefined;
+            }
+
+            if (typeof value !== "string") {
+                return value;
+            }
+
+            const normalized = value.trim().replace(/\s+/g, "").replace(/[()\-]/g, "");
+            return normalized === "" ? undefined : Number(normalized);
+        },
+        z.number()
+            .int("User ID must be a valid integer")
+            .positive("User ID must be a positive number")
+            .optional()
+            .refine(
+                async (userId) => {
+                    if (userId === undefined) return true;
+
+                    const user = await prisma.user.findUnique({ where: { id: userId } });
+                    return !!user;
+                },
+                {
+                    message: "Reference does not exist in the system.",
+                }
+            )
+    ),
+    password: z.preprocess(
+        (value) => (value === undefined || value === null || value === "" ? undefined : value),
+        z.string().min(8, "Minimum character length 8").optional()
+    ),
+    confirmPassword: z.preprocess(
+        (value) => (value === undefined || value === null || value === "" ? undefined : value),
+        z.string().min(8, "Minimum character length 8").optional()
+    ),
+}).superRefine(async (data,ctx)=>{
+    if (!data.password) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["password"],
+                message: "Password is required",
+            });
+        }
+
+        if (!data.confirmPassword) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["confirmPassword"],
+                message: "Confirm Password is required",
+            });
+    }
+    if (data.password !== undefined && data.confirmPassword !== undefined) {
+        if (data.password !== data.confirmPassword) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["confirmPassword"],
+                message: "Password do not match",
+            });
+        }
+    }
+});
+
+type UserPasswordChangeState = z.infer<typeof UserPasswordChangeSchema>
+
+export { UserCreateSchema,UserPasswordChangeSchema };
+export type { UserCreateState, UserPasswordChangeState};
