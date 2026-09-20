@@ -22,11 +22,13 @@ function Field({ label, children }: { label: string; children: ReactNode }): Rea
 
 export default function UserDetailsCard({ user }: UserDetailsCard) {
     const [isOpen,setIsOpen] = useState(false)
+    const [modalSeed, setModalSeed] = useState(0)
 
     const closeModal=():void=>{
         setIsOpen(false)        
     }
     const showUserEditModal = () =>{
+        setModalSeed((value) => value + 1)
         setIsOpen(true)
     }
     return (
@@ -82,7 +84,13 @@ export default function UserDetailsCard({ user }: UserDetailsCard) {
                     </span>
                 </Field>
             </div>
-            <UserModal isOpen={isOpen} onClose={closeModal} modalTitle={"Edit"+" "+user.name} user={user} />
+            <UserModal
+                key={`${user.id}-${user.phone ?? "empty"}-${modalSeed}`}
+                isOpen={isOpen}
+                onClose={closeModal}
+                modalTitle={"Edit"+" "+user.name}
+                user={user}
+            />
         </div>
     )
  }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import type {UserCreateState} from "@/lib/validation/user";
@@ -16,6 +16,7 @@ interface NewUserModalProps {
 }
 
 const createDefaultForm = (user?: SafeUser): UserCreateState => ({
+    userId: user?.id ?? undefined,
     name: user?.name ?? "",
     email: user?.email ?? "",
     password: "",
@@ -31,7 +32,7 @@ export default function UserModal({ isOpen, onClose,modalTitle,user}: NewUserMod
         confirmPassword: false,
     });
     const [isSubmitting,setIsSubmitting] = useState<boolean>(false)
-    const [formData, setFormData] = useState<UserCreateState>(createDefaultForm)
+    const [formData, setFormData] = useState<UserCreateState>(() => createDefaultForm(user))
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof UserCreateState, string>>>({});
     const router = useRouter();
@@ -81,8 +82,8 @@ export default function UserModal({ isOpen, onClose,modalTitle,user}: NewUserMod
                 }
                 return;
             }
-
-            toast.success("User created successfully!");
+            const successMsg:string = user ? "User updated successfully!":"User created successfully!";
+            toast.success(successMsg);
             router.refresh();
             closeModal();
         }
@@ -163,7 +164,7 @@ export default function UserModal({ isOpen, onClose,modalTitle,user}: NewUserMod
                                 value={formData.phone}
                                 onChange={(e)=>{handleChange(e)}}
                             />
-                            {fieldErrors.email ? <p className="mt-2 text-sm text-red-600">{fieldErrors.email}</p> : null}
+                            {fieldErrors.phone ? <p className="mt-2 text-sm text-red-600">{fieldErrors.phone}</p> : null}
                         </div>
                         
                         <div className={isEditRequest ? "hidden":""} >

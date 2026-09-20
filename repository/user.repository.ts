@@ -1,5 +1,6 @@
 import prisma  from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { StageChunks } from "next/dist/server/app-render/instant-validation/instant-validation";
 
 const PAGE_SIZE = 10;
 
@@ -32,6 +33,7 @@ export class UserRepository {
   async create(data:Prisma.UserCreateInput): Promise<SafeUser>{
     return prisma.user.create({data, select: safeUserSelect})
   }
+
 
   async findUserById(id: number): Promise<SafeUser | null> {
     return prisma.user.findUnique({
