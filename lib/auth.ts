@@ -1,9 +1,28 @@
-import type { NextAuthOptions } from "next-auth";
+import type { DefaultSession, NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+
+declare module "next-auth" {
+    interface Session {
+        user: DefaultSession["user"] & {
+            id?: string | null;
+            permissions?: string[];
+        };
+    }
+
+    interface User {
+        permissions?: string[];
+    }
+}
+
+declare module "next-auth/jwt" {
+    interface JWT {
+        permissions?: string[];
+    }
+}
 
 const loginSchema = z.object({
     email: z.string().trim().email(),
@@ -21,6 +40,26 @@ export const authOptions: NextAuthOptions = {
     },
     pages: {
         signIn: "/login",
+    },
+    callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
+                const typedUser = user as User & { permissions?: string[] };
+                token.permissions = typedUser.permissions ?? [];
+            }
+
+            return token;
+        },
+        async session({ session, token }) {
+            return {
+                ...session,
+                user: {
+                    ...session.user,
+                    id: token.sub ?? session.user?.id ?? null,
+                    permissions: Array.isArray(token.permissions) ? token.permissions : [],
+                },
+            };
+        },
     },
     providers: [
         CredentialsProvider({
@@ -43,19 +82,21 @@ export const authOptions: NextAuthOptions = {
                         status: "ACTIVE",
                         deletedAt: null,
                     },
+                    include: {
+                        permissions: {
+                            where: { deletedAt: null },
+                            select: { permission: true },
+                        },
+                    },
                 });
 
                 if (!user) {
                     return null;
                 }
 
-                console.log("User found:", user);
-
                 const isPasswordValid = await compare(parsedCredentials.data.password, user.password);
-                console.log("Password valid:", isPasswordValid);
 
                 if (!isPasswordValid) {
-                    console.log("Invalid password for user:", user.email);
                     return null;
                 }
 
@@ -63,6 +104,7 @@ export const authOptions: NextAuthOptions = {
                     id: String(user.id),
                     name: user.name,
                     email: user.email,
+                    permissions: user.permissions.map((entry) => entry.permission),
                 };
             },
         }),
