@@ -1,16 +1,21 @@
-import {UserRepository} from "@/repository/user.repository";
+import { UserRepository } from "@/repository/user.repository";
 import type { SafeUser } from "@/repository/user.repository";
 import bcrypt from "bcryptjs";
 import type { UserCreateState, UserPasswordChangeState } from "@/lib/validation/user";
 import prisma from "@/lib/prisma";
+
 export class UserService {
     constructor(private userRepository: UserRepository) {}
 
-    async getAllUsers(page: number = 1): Promise<SafeUser[]> {
-        return this.userRepository.findAllUsers(page);
+    async getAllUsers(page: number = 1, search: string = ""): Promise<SafeUser[]> {
+        return this.userRepository.findAllUsers(page, search);
     }
 
-    async createUser(payload:UserCreateState): Promise<SafeUser>{
+    async countUsers(search: string = ""): Promise<number> {
+        return this.userRepository.countUsers(search);
+    }
+
+    async createUser(payload: UserCreateState): Promise<SafeUser> {
         // Listed field by field so `confirmPassword` — and anything added to the
         // form later — can never reach the database by accident.
 
@@ -18,7 +23,7 @@ export class UserService {
             name: payload.name,
             email: payload.email,
             phone: payload.phone,
-        }
+        };
 
         if (payload.userId === undefined) {
             if (!payload.password) {
@@ -26,7 +31,7 @@ export class UserService {
             }
 
             const hashedPassword = await bcrypt.hash(payload.password, 10);
-            
+
             return this.userRepository.create({
                 ...userData,
                 password: hashedPassword,
@@ -41,18 +46,18 @@ export class UserService {
         });
     }
 
-    async changePassword(payload:UserPasswordChangeState):Promise<SafeUser>{
+    async changePassword(payload: UserPasswordChangeState): Promise<SafeUser> {
         if (!payload.password) {
-                throw new Error("Password is required for create request.");
-            }
-        console.log(payload)
+            throw new Error("Password is required for create request.");
+        }
+
         const hashedPassword = await bcrypt.hash(payload.password, 10);
         return prisma.user.update({
             where: {
                 id: payload.userId,
             },
             data: {
-                password:hashedPassword
+                password: hashedPassword,
             },
         });
     }
