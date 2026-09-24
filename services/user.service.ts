@@ -1,6 +1,7 @@
-import { UserRepository } from "@/repository/user.repository";
+import { UserRepository, safeUserSelect } from "@/repository/user.repository";
 import type { SafeUser } from "@/repository/user.repository";
 import bcrypt from "bcryptjs";
+import type { Permission } from "@prisma/client";
 import type { UserCreateState, UserPasswordChangeState } from "@/lib/validation/user";
 import prisma from "@/lib/prisma";
 
@@ -43,6 +44,7 @@ export class UserService {
                 id: payload.userId,
             },
             data: userData,
+            select: safeUserSelect,
         });
     }
 
@@ -59,10 +61,15 @@ export class UserService {
             data: {
                 password: hashedPassword,
             },
+            select: safeUserSelect,
         });
     }
 
     async getUserById(id: number): Promise<SafeUser | null> {
         return this.userRepository.findUserById(id);
+    }
+
+    async updateUserPermissions(userId: number, permissions: Permission[]): Promise<void> {
+        await this.userRepository.updateUserPermissions(userId, permissions);
     }
 }

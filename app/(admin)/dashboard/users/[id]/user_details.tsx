@@ -10,7 +10,6 @@ import UserModal from "@/components/User/UserModal"
 interface UserDetailsCard {
   user: SafeUser;
 }
-
 function Field({ label, children }: { label: string; children: ReactNode }): React.JSX.Element {
     return (
         <div className="min-w-0">
@@ -31,6 +30,12 @@ export default function UserDetailsCard({ user }: UserDetailsCard) {
         setModalSeed((value) => value + 1)
         setIsOpen(true)
     }
+    // const userPermissions = user.permissions.map((permission)=>{
+    //     return {
+    //         id:permission?.id,
+    //         name:permission?.permission,
+    //     }
+    // })
     return (
         <div className="w-full rounded-2xl border border-slate-300 bg-neutral-secondary-low pb-5">
             <div className="flex items-start p-5">

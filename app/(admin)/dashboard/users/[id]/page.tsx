@@ -7,6 +7,7 @@ import { UserRepository } from "@/repository/user.repository";
 import DeleteUserButton from "@/components/User/DeleteUserButton";
 import UserDetailsCard from "./user_details";
 import UserSecuritySection from "./security_component"
+import UserAccessControl from "./access_controls"
 
 const userService = new UserService(new UserRepository());
 const getUser = cache((id: number) => userService.getUserById(id));
@@ -52,6 +53,8 @@ export default async function ViewUserPage({ params }: ViewUserPageProps) {
         <UserDetailsCard user={user} />
 
         <UserSecuritySection user={user}/>
+
+        <UserAccessControl user={user}/>
 
         <div className="w-full rounded-2xl border border-red-500 bg-neutral-secondary-low p-5 mt-3">
             <p className="text-md font-semibold pb-2 text-red-500">Danger Zone</p>

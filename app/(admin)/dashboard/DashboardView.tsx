@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react"
 export default function DashboardView() {
   const { data: session } = useSession();
   const permissions = ((session?.user as { permissions?: string[] } | undefined)?.permissions ?? [])
-  console.log(session)
   return (
     <div>
       <h1 className="text-3xl">Dashboard</h1>

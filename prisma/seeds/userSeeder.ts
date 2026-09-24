@@ -19,8 +19,7 @@ function generateRandomUser(count: number = 20): FakeUser[] {
   }));
 }
 
-export async function seedUsers() {
-  console.log("Seeding users...");
+async function createUsers(){
   const salt = await genSalt(10);
   const password = await hash("123456789", salt);
 
@@ -49,30 +48,43 @@ export async function seedUsers() {
       },
     });
   }
+}
+
+export async function seedUsers() {
+  console.log("Seeding users...");
 
   // 1. Fetching only the Superadmins
-  const all_su_users = await prisma.user.findMany({
+  let superUser = await prisma.user.findFirst({
     where: {
       UserType: "SUPERADMIN"
     }
   });
-  
+
   // 2. Extracting enum values dynamically
   const allPermissions = Object.values(Permission);
 
   // 3. Mass-assigning all permissions to each discovered Superadmin
-  if (all_su_users.length > 0) {
-    console.log(`Assigning ${allPermissions.length} permissions to ${all_su_users.length} superadmins...`);
-    for (const user of all_su_users) {
-      await prisma.userPermission.createMany({
-        data: allPermissions.map((permission) => ({
-          userId: user.id,
-          permission: permission,
-        })),
-        skipDuplicates: true, 
-      });
-    }
+  if (!superUser) {
+    await createUsers();
+    superUser = await prisma.user.findFirst({
+      where: {
+        UserType: "SUPERADMIN"
+      }
+    });
   }
-  
+
+  if (!superUser) {
+    console.log("No super admin found after seeding.");
+    return;
+  }
+
+  await prisma.userPermission.createMany({
+    data: allPermissions.map((permission) => ({
+      userId: superUser.id,
+      permission: permission,
+    })),
+    skipDuplicates: true,
+  });
+
   console.log("Users and superadmin permissions seeded successfully!");
 }

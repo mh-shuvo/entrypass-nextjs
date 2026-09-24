@@ -1,5 +1,5 @@
 "use server";
-import { Prisma } from "@prisma/client";
+import { Permission, Prisma } from "@prisma/client";
 import { UserService } from "@/services/user.service";
 import { UserRepository, type SafeUser } from "@/repository/user.repository";
 import {type UserPasswordChangeState, type UserCreateState } from "@/lib/validation/user";
@@ -115,6 +115,40 @@ export async function deleteUserAction(userId:number):Promise<ActionResult>{
         return { success: false, error: "Something went wrong. Please try again." };
     }
 
+    revalidatePath("/dashboard/users");
+    return { success: true, data: undefined };
+}
+
+export async function updateUserPermissionsAction(
+    userId: number,
+    permissions: Permission[]
+): Promise<ActionResult> {
+    const authorization = await authorize("manage_user");
+    if (!authorization.authorized) {
+        return { success: false, error: authorization.error };
+    }
+
+    const hasUserExists = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, UserType: true },
+    });
+
+    if (!hasUserExists) {
+        return { success: false, error: "User not found" };
+    }
+
+    if (hasUserExists.UserType === "SUPERADMIN" && authorization.actor.UserType !== "SUPERADMIN") {
+        return { success: false, error: "You do not have permission to do that." };
+    }
+
+    try {
+        await userService.updateUserPermissions(userId, permissions);
+    } catch (error) {
+        console.error("updateUserPermissionsAction failed", error);
+        return { success: false, error: "Something went wrong. Please try again." };
+    }
+
+    revalidatePath(`/dashboard/users/${userId}`);
     revalidatePath("/dashboard/users");
     return { success: true, data: undefined };
 }

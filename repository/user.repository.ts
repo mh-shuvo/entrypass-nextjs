@@ -1,10 +1,9 @@
 import prisma from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
-
+import { Permission, UserType, type Prisma } from "@prisma/client";
 const PAGE_SIZE = 10;
 
 // Never selects `password`, so the hash cannot leak into a server action response.
-const safeUserSelect = {
+export const safeUserSelect = {
   id: true,
   name: true,
   email: true,
@@ -13,6 +12,10 @@ const safeUserSelect = {
   createdAt: true,
   updatedAt: true,
   UserType: true,
+  permissions: {
+    where: { deletedAt: null },
+    select: { permission: true },
+  },
 } satisfies Prisma.UserSelect;
 
 export type SafeUser = Prisma.UserGetPayload<{ select: typeof safeUserSelect }>;
@@ -35,8 +38,12 @@ export class UserRepository {
   }
 
   async findAllUsers(page: number = 1, search: string = ""): Promise<SafeUser[]> {
-    const where = this.buildUserSearch(search);
-
+    const where = {
+      AND:{
+        UserType:UserType.EXECUTIVE
+      },
+      ...this.buildUserSearch(search)
+    };
     return prisma.user.findMany({
       where,
       skip: (page - 1) * PAGE_SIZE,
@@ -62,6 +69,60 @@ export class UserRepository {
     return prisma.user.findUnique({
       where: { id },
       select: safeUserSelect,
+    });
+  }
+
+  async updateUserPermissions(userId: number, permissions: Permission[]): Promise<void> {
+    const selectedPermissions = Array.from(new Set(permissions));
+
+    await prisma.$transaction(async (tx) => {
+      const existingPermissions = await tx.userPermission.findMany({
+        where: { userId },
+        select: { permission: true, deletedAt: true },
+      });
+
+      const activePermissions = new Set(
+        existingPermissions
+          .filter((row) => row.deletedAt === null)
+          .map((row) => row.permission)
+      );
+
+      const permissionsToDeactivate = existingPermissions
+        .filter((row) => row.deletedAt === null && !selectedPermissions.includes(row.permission))
+        .map((row) => row.permission);
+
+      if (permissionsToDeactivate.length > 0) {
+        await tx.userPermission.updateMany({
+          where: {
+            userId,
+            permission: { in: permissionsToDeactivate },
+            deletedAt: null,
+          },
+          data: { deletedAt: new Date() },
+        });
+      }
+
+      for (const permission of selectedPermissions) {
+        if (activePermissions.has(permission)) {
+          continue;
+        }
+
+        await tx.userPermission.upsert({
+          where: {
+            userId_permission: {
+              userId,
+              permission,
+            },
+          },
+          update: {
+            deletedAt: null,
+          },
+          create: {
+            userId,
+            permission,
+          },
+        });
+      }
     });
   }
 }
