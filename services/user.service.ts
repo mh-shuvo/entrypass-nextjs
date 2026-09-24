@@ -1,7 +1,7 @@
 import { UserRepository, safeUserSelect } from "@/repository/user.repository";
 import type { SafeUser } from "@/repository/user.repository";
 import bcrypt from "bcryptjs";
-import type { Permission } from "@prisma/client";
+import { UserType, type Permission } from "@prisma/client";
 import type { UserCreateState, UserPasswordChangeState } from "@/lib/validation/user";
 import prisma from "@/lib/prisma";
 
@@ -24,6 +24,7 @@ export class UserService {
             name: payload.name,
             email: payload.email,
             phone: payload.phone,
+            UserType: UserType.EXECUTIVE,
         };
 
         if (payload.userId === undefined) {
@@ -33,10 +34,13 @@ export class UserService {
 
             const hashedPassword = await bcrypt.hash(payload.password, 10);
 
-            return this.userRepository.create({
+            const createdUser = await this.userRepository.create({
                 ...userData,
                 password: hashedPassword,
             });
+
+            await this.userRepository.createDefaultPermissions(createdUser.id, createdUser.UserType);
+            return createdUser;
         }
 
         return prisma.user.update({

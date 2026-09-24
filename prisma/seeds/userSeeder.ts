@@ -1,7 +1,10 @@
 import { hash, genSalt } from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { faker } from "@faker-js/faker";
-import { Permission, UserType } from "@prisma/client";
+import { ExecutivePermission, Permission, UserType } from "@prisma/client";
+
+const EXECUTIVE_DEFAULT_PERMISSIONS = Object.values(ExecutivePermission) as Permission[];
+const ALL_PERMISSIONS = Object.values(Permission) as Permission[];
 
 interface FakeUser {
   name: string;
@@ -33,7 +36,7 @@ async function createUsers(){
   ];
 
   for (const user of users) {
-    await prisma.user.upsert({
+    const createdUser = await prisma.user.upsert({
       where: { email: user.email },
       update: {
         name: user.name,
@@ -46,6 +49,19 @@ async function createUsers(){
         password,
         UserType: user.UserType ?? UserType.EXECUTIVE,
       },
+    });
+
+    const defaultPermissions =
+      createdUser.UserType === UserType.SUPERADMIN
+        ? ALL_PERMISSIONS
+        : EXECUTIVE_DEFAULT_PERMISSIONS;
+
+    await prisma.userPermission.createMany({
+      data: defaultPermissions.map((permission) => ({
+        userId: createdUser.id,
+        permission,
+      })),
+      skipDuplicates: true,
     });
   }
 }

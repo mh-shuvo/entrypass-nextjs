@@ -14,3 +14,8 @@ enum Permission {
   manage_user
   manage_own_profile
 }
+
+enum ExecutivePermission {
+  manage_events
+  manage_own_profile
+}

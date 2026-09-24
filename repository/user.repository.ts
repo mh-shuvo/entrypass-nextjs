@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
-import { Permission, UserType, type Prisma } from "@prisma/client";
+import { ExecutivePermission, Permission, UserType, type Prisma } from "@prisma/client";
 const PAGE_SIZE = 10;
+const DEFAULT_PERMISSIONS = Object.values(Permission) as Permission[];
+const EXECUTIVE_DEFAULT_PERMISSIONS = Object.values(ExecutivePermission) as Permission[];
 
 // Never selects `password`, so the hash cannot leak into a server action response.
 export const safeUserSelect = {
@@ -63,6 +65,19 @@ export class UserRepository {
 
   async create(data: Prisma.UserCreateInput): Promise<SafeUser> {
     return prisma.user.create({ data, select: safeUserSelect });
+  }
+
+  async createDefaultPermissions(userId: number, userType: UserType): Promise<void> {
+    const permissions: Permission[] =
+      userType === UserType.SUPERADMIN ? DEFAULT_PERMISSIONS : EXECUTIVE_DEFAULT_PERMISSIONS;
+
+    await prisma.userPermission.createMany({
+      data: permissions.map((permission) => ({
+        userId,
+        permission,
+      })),
+      skipDuplicates: true,
+    });
   }
 
   async findUserById(id: number): Promise<SafeUser | null> {
