@@ -49,26 +49,23 @@ export default async function ViewUserPage({ params }: ViewUserPageProps) {
     }
 
     return (
-        <>
-        <UserDetailsCard user={user} />
+        <div className="space-y-3">
+            <UserDetailsCard user={user} />
 
-        <UserSecuritySection user={user}/>
+            <UserSecuritySection user={user}/>
 
-        <UserAccessControl user={user}/>
+            <UserAccessControl user={user}/>
 
-        <div className="w-full rounded-2xl border border-red-500 bg-neutral-secondary-low p-5 mt-3">
-            <p className="text-md font-semibold pb-2 text-red-500">Danger Zone</p>
-            <div className="flex justify-between">
-                <div>
-                    <p className="text-sm font-semibold">Delete Account</p>
-                    <p className="text-sm text-muted">You will not able to retrieve your account. All of associated data will be deleted.</p>
-                </div>
-                <div>
+            <div className="mt-3 w-full rounded-3xl border border-red-200 bg-red-50 p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-600">Danger zone</p>
+                <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p className="text-lg font-semibold text-zinc-900">Delete account</p>
+                        <p className="mt-1 text-sm text-zinc-600">This action cannot be undone and will remove the user and their related records.</p>
+                    </div>
                     <DeleteUserButton userId={user.id} />
                 </div>
             </div>
         </div>
-
-        </>
     );
 }
