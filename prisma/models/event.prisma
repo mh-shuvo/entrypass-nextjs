@@ -7,6 +7,7 @@ model Event {
   regStart    DateTime?
   regEnd      DateTime?
   status      EVENT_STATUS @default(DRAFT)
+  venue       String       
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   deletedAt   DateTime?

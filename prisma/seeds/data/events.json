@@ -7,7 +7,8 @@
     "endDate": "2026-08-15T17:00:00Z",
     "regStart": "2026-07-20T00:00:00Z",
     "regEnd": "2026-08-10T23:59:59Z",
-    "status": "PUBLISHED"
+    "status": "PUBLISHED",
+    "venue": "Sky Hall, New York"
   },
   {
     "event_slug": "nextjs-fullstack-bootcamp",
@@ -17,7 +18,8 @@
     "endDate": "2026-09-06T18:00:00Z",
     "regStart": "2026-08-01T00:00:00Z",
     "regEnd": "2026-08-30T23:59:59Z",
-    "status": "PUBLISHED"
+    "status": "PUBLISHED",
+    "venue": "Harbor Studio, Seattle"
   },
   {
     "event_slug": "ai-developer-summit-2026",
@@ -27,7 +29,8 @@
     "endDate": "2026-10-11T18:00:00Z",
     "regStart": "2026-08-15T00:00:00Z",
     "regEnd": "2026-10-01T23:59:59Z",
-    "status": "DRAFT"
+    "status": "DRAFT",
+    "venue": "Grand Center, Chicago"
   },
   {
     "event_slug": "cyber-security-awareness-day",
@@ -37,7 +40,8 @@
     "endDate": "2026-11-20T16:00:00Z",
     "regStart": "2026-10-01T00:00:00Z",
     "regEnd": "2026-11-15T23:59:59Z",
-    "status": "PUBLISHED"
+    "status": "PUBLISHED",
+    "venue": "Summit Room, Austin"
   },
   {
     "event_slug": "annual-tech-fest-2026",
@@ -47,6 +51,7 @@
     "endDate": "2026-12-13T20:00:00Z",
     "regStart": "2026-09-15T00:00:00Z",
     "regEnd": "2026-12-05T23:59:59Z",
-    "status": "PUBLISHED"
+    "status": "PUBLISHED",
+    "venue": "Riverfront Venue, Miami"
   }
 ]

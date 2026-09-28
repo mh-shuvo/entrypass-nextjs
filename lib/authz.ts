@@ -10,6 +10,10 @@ export type AuthorizeResult =
   | { authorized: true; actor: Actor }
   | { authorized: false; error: string };
 
+export type PermissionCheckResult =
+  | { success: true; actor: Actor }
+  | { success: false; error: string };
+
 // A server action is a public POST endpoint, so the acting user is always
 // re-read from the database: the session only proves which email signed in, not
 // what that account is still allowed to do.
@@ -42,4 +46,14 @@ export async function authorize(permission: Permission): Promise<AuthorizeResult
     }
 
     return { authorized: true, actor: { id: actor.id, UserType: actor.UserType } };
+}
+
+export async function requirePermission(permission: Permission): Promise<PermissionCheckResult> {
+    const authorization = await authorize(permission);
+
+    if (!authorization.authorized) {
+        return { success: false, error: authorization.error };
+    }
+
+    return { success: true, actor: authorization.actor };
 }

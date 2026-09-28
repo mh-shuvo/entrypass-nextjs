@@ -20,6 +20,7 @@ type MockEvent = {
   updatedAt: Date;
   deletedAt: Date | null;
   event_slug: string;
+  venue?: string;
 };
 
 const mockEvents: MockEvent[] = [
@@ -258,6 +259,21 @@ const statusStyles: Record<EventStatus, string> = {
   CANCELLED: "bg-rose-100 text-rose-700 ring-rose-200",
 };
 
+const venueOptions = [
+  "Sky Hall, New York",
+  "Harbor Studio, Seattle",
+  "Grand Center, Chicago",
+  "Summit Room, Austin",
+  "Lakeside Pavilion, Boston",
+  "North Tower, Denver",
+  "Civic Stage, San Diego",
+  "Riverfront Venue, Miami",
+];
+
+mockEvents.forEach((event, index) => {
+  event.venue = venueOptions[index % venueOptions.length];
+});
+
 const formatDate = (date: Date | null | undefined, options?: Intl.DateTimeFormatOptions) => {
   if (!date) return "—";
   return new Intl.DateTimeFormat("en-US", {
@@ -309,10 +325,12 @@ export default function AdminEventsPage() {
     const next30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     const result = mockEvents.filter((event) => {
+      const venueText = event.venue ?? "";
       const matchesSearch =
         !query ||
         event.title.toLowerCase().includes(query) ||
         event.event_slug.toLowerCase().includes(query) ||
+        venueText.toLowerCase().includes(query) ||
         event.description?.toLowerCase().includes(query);
 
       const matchesStatus = statusFilter === "ALL" || event.status === statusFilter;
@@ -398,9 +416,9 @@ export default function AdminEventsPage() {
             />
           </label>
 
-          <button className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500">
+          <a href="/dashboard/events/create" className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500">
             + New event
-          </button>
+          </a>
         </div>
       </div>
 
@@ -559,6 +577,14 @@ export default function AdminEventsPage() {
                         <path d="M16 3v4M8 3v4M3 10h18" strokeLinecap="round" />
                       </svg>
                       {formatDateRange(event.startDate, event.endDate)}
+                    </div>
+
+                    <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-2.5 py-1.5">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 text-zinc-500">
+                        <path d="M12 21s6-5.5 6-11a6 6 0 1 0-12 0c0 5.5 6 11 6 11Z" />
+                        <circle cx="12" cy="10" r="2.5" />
+                      </svg>
+                      {event.venue ?? "Venue TBD"}
                     </div>
 
                     <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-2.5 py-1.5">

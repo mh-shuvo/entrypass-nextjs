@@ -8,6 +8,7 @@ export async function seedEvents() {
   for (const event of events) {
     const data = {
         ...event,
+        venue: event.venue ?? "Venue TBD",
         startDate: new Date(event.startDate),
         endDate: new Date(event.endDate),
         regStart: new Date(event.regStart),

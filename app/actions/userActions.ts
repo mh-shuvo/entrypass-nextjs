@@ -6,17 +6,14 @@ import {type UserPasswordChangeState, type UserCreateState } from "@/lib/validat
 import {UserCreateSchema,UserPasswordChangeSchema} from "@/lib/validation/user";
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache";
-import { authorize } from "@/lib/authz";
-
+import { requirePermission } from "@/lib/authz";
+import {ActionResult} from "@/lib/utils"
 const userService = new UserService(new UserRepository)
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string; fieldErrors?: Partial<Record<string, string>> };
 
 export async function createUserAction(payload:UserCreateState): Promise<ActionResult<SafeUser>>{
-    const authorization = await authorize("manage_user");
-    if (!authorization.authorized) {
-        return { success: false, error: authorization.error };
+    const permissionCheck = await requirePermission("manage_user");
+    if (!permissionCheck.success) {
+        return { success: false, error: permissionCheck.error };
     }
 
     // 1. Validate shape/format — same schema your form already uses
@@ -81,12 +78,12 @@ export async function changePasswordAction(payload:UserPasswordChangeState):Prom
 }
 
 export async function deleteUserAction(userId:number):Promise<ActionResult>{
-    const authorization = await authorize("manage_user");
-    if (!authorization.authorized) {
-        return { success: false, error: authorization.error };
+    const permissionCheck = await requirePermission("manage_user");
+    if (!permissionCheck.success) {
+        return { success: false, error: permissionCheck.error };
     }
 
-    if (authorization.actor.id === userId) {
+    if (permissionCheck.actor.id === userId) {
         return { success: false, error: "You cannot delete your own account." };
     }
 
@@ -104,7 +101,7 @@ export async function deleteUserAction(userId:number):Promise<ActionResult>{
 
     // Otherwise `manage_user` would let an executive remove the accounts that
     // grant `manage_user` in the first place.
-    if (hasUserExists.UserType === "SUPERADMIN" && authorization.actor.UserType !== "SUPERADMIN") {
+    if (hasUserExists.UserType === "SUPERADMIN" && permissionCheck.actor.UserType !== "SUPERADMIN") {
         return { success: false, error: "You do not have permission to do that." };
     }
 
@@ -123,9 +120,9 @@ export async function updateUserPermissionsAction(
     userId: number,
     permissions: Permission[]
 ): Promise<ActionResult> {
-    const authorization = await authorize("manage_user");
-    if (!authorization.authorized) {
-        return { success: false, error: authorization.error };
+    const permissionCheck = await requirePermission("manage_user");
+    if (!permissionCheck.success) {
+        return { success: false, error: permissionCheck.error };
     }
 
     const hasUserExists = await prisma.user.findUnique({
@@ -137,7 +134,7 @@ export async function updateUserPermissionsAction(
         return { success: false, error: "User not found" };
     }
 
-    if (hasUserExists.UserType === "SUPERADMIN" && authorization.actor.UserType !== "SUPERADMIN") {
+    if (hasUserExists.UserType === "SUPERADMIN" && permissionCheck.actor.UserType !== "SUPERADMIN") {
         return { success: false, error: "You do not have permission to do that." };
     }
 
