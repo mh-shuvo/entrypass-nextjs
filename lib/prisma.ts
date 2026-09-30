@@ -14,3 +14,8 @@ const prisma = _global.prisma || new PrismaClient({ adapter });
 if (process.env.NODE_ENV !== 'production') _global.prisma = prisma;
 
 export default prisma;
+
+export type ModelNames = keyof Omit<
+  PrismaClient,
+  `$${string}` | 'on' | 'connect' | 'disconnect' | 'autocommit'
+>;

@@ -2,8 +2,8 @@ model Event {
   id          Int          @id @default(autoincrement())
   title       String       @db.VarChar(100)
   description String?      @db.Text
-  startDate   DateTime
-  endDate     DateTime
+  startDate   DateTime?
+  endDate     DateTime?
   regStart    DateTime?
   regEnd      DateTime?
   status      EVENT_STATUS @default(DRAFT)

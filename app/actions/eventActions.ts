@@ -1,12 +1,15 @@
 "use server";
 
-import { EVENT_STATUS } from "@prisma/client";
+import { EVENT_STATUS, type Event } from "@prisma/client";
 
 import { requirePermission } from "@/lib/authz";
 import { ActionResult } from "@/lib/utils";
 import { EventSchema, type EventCreateState } from "@/lib/validation/event";
+import {EventService} from "@/services/event.service"
+import { EventRepository } from "@/repository/event.repository"
 
-const eventWriteActions = async (payload: EventCreateState): Promise<ActionResult> => {
+
+const eventWriteActions = async (payload: EventCreateState): Promise<ActionResult<Event>> => {
     const permissionCheck = await requirePermission("manage_events");
     if (!permissionCheck.success) {
         return { success: false, error: permissionCheck.error };
@@ -46,7 +49,11 @@ const eventWriteActions = async (payload: EventCreateState): Promise<ActionResul
         };
     }
 
-    return { success: true, data: undefined };
+    const eventService = new EventService(new EventRepository())
+
+    const result = await eventService.upsert(parsed.data)
+
+    return { success: true, data: result };
 };
 
 export { eventWriteActions };

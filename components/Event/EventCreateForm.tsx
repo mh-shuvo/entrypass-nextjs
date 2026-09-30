@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { ActionResult } from "@/lib/utils";
+import type { Event } from "@prisma/client";
 
 type EventStatus = "DRAFT" | "PUBLISHED";
 
@@ -36,7 +37,7 @@ const defaultForm: EventFormState = {
 type EventSubmitPayload = EventFormState & { status: EventStatus };
 
 type EventCreateFormProps = {
-  action: (payload: EventSubmitPayload) => Promise<ActionResult> | ActionResult;
+  action: (payload: EventSubmitPayload) => Promise<ActionResult<Event>> | ActionResult<Event>;
 };
 
 export default function EventCreateForm({ action }: EventCreateFormProps) {
@@ -101,14 +102,14 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
           <button
             type="button"
             onClick={() => submitEventCreateForm("DRAFT")}
-            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition cursor-pointer hover:bg-zinc-50"
           >
             Save draft
           </button>
           <button
             type="button"
             onClick={() => submitEventCreateForm("PUBLISHED")}
-            className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500"
+            className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition cursor-pointer hover:bg-violet-500"
           >
             Publish event
           </button>
