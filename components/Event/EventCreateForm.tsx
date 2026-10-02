@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import type { ActionResult } from "@/lib/utils";
 import type { Event } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 type EventStatus = "DRAFT" | "PUBLISHED";
 
@@ -44,6 +45,7 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
   const [form, setForm] = useState<EventFormState>(defaultForm);
   const [selectedStatus, setSelectedStatus] = useState<EventStatus>("DRAFT");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof EventFormState | "status", string>>>({});
+  const router = useRouter();
 
   const previewDate = useMemo(() => {
     const start = form.startDate ? new Date(form.startDate) : null;
@@ -88,6 +90,7 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
 
     setFieldErrors({});
     toast.success(nextStatus === "DRAFT" ? "Draft saved successfully." : "Event published successfully.");
+    router.push(`/admin/dashboard/events/${result.data.event_slug}`);
   };
 
   return (
