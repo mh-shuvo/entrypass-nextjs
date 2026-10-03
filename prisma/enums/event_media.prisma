@@ -1,0 +1,4 @@
+enum EVENT_MEDIA_KIND {
+  BANNER
+  SUPPORTING
+}

@@ -5,13 +5,30 @@ export class EventRepository {
   async create(data: Prisma.EventCreateInput): Promise<Event> {
     return prisma.event.create({ data });
   }
+  async updateBySlug(eventSlug: string, data: Prisma.EventUpdateInput): Promise<Event> {
+    return prisma.event.update({
+      where: { event_slug: eventSlug, deletedAt: null },
+      data,
+    });
+  }
+  async archiveBySlug(eventSlug: string): Promise<Event> {
+    return prisma.event.update({
+      where: { event_slug: eventSlug, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+  }
+  async deleteBySlug(eventSlug: string): Promise<Event> {
+    return prisma.event.delete({
+      where: { event_slug: eventSlug },
+    });
+  }
   async findAll(page: number, sortOption:Prisma.EventOrderByWithRelationInput, filters: Prisma.EventWhereInput): Promise<[number,Event[]]> {
     return await prisma.$transaction([
       prisma.event.count({
-        where: filters,
+        where: { ...filters, deletedAt: null },
       }),
       prisma.event.findMany({
-        where: filters,
+        where: { ...filters, deletedAt: null },
         orderBy: sortOption,
         skip: (page - 1) * 10,
         take: 10,
@@ -28,7 +45,9 @@ export class EventRepository {
       cancelled: number;
     }
   }> {
-    const allEvents = await prisma.event.findMany();
+    const allEvents = await prisma.event.findMany({
+      where: { deletedAt: null },
+    });
     const total = allEvents.length;
     const published = allEvents.filter(e => e.status === "PUBLISHED").length;
     const draft = allEvents.filter(e => e.status === "DRAFT").length;

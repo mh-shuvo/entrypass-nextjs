@@ -4,6 +4,7 @@ import { EventListType,StatusFilter,DateFilter,SortOption } from "@/lib/event.ty
 import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 import {formatDate,formatDateRange,statusStyles} from "@/lib/event.utils";
 import PageHeader from "../PageHeader";
@@ -91,9 +92,9 @@ export default function AdminEventsListComponent({events}: AdminEventsListCompon
             />
           </label>
 
-          <a href="/dashboard/events/create" className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500">
+          <Link href="/dashboard/events/create" className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500">
             + New event
-          </a>
+          </Link>
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -272,12 +273,19 @@ export default function AdminEventsListComponent({events}: AdminEventsListCompon
                 </div>
 
                 <div className="flex flex-col items-stretch gap-2 sm:flex-row lg:flex-col xl:flex-row">
-                  <button className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50">
+                  <Link
+                    href={`/dashboard/events/${encodeURIComponent(event.event_slug)}`}
+                    className="cursor-pointer rounded-xl border border-zinc-200 bg-white px-4 py-2 text-center text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+                  >
                     View details
-                  </button>
-                  <button className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700">
+                  </Link>
+
+                  <Link
+                    href={`/dashboard/events/${encodeURIComponent(event.event_slug)}?mode=edit`}
+                    className="cursor-pointer rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700"
+                  >
                     Edit event
-                  </button>
+                  </Link>
                 </div>
               </div>
 

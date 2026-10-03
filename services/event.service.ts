@@ -1,31 +1,41 @@
 import {generateSlug} from "@/lib/utils"
 import {EventCreateState} from "@/lib/validation/event"
-import type { Event, Prisma } from "@prisma/client";
+import type { Event, Prisma, EventMedia } from "@prisma/client";
+import { EVENT_MEDIA_KIND } from "@prisma/client"
 import { EVENT_STATUS } from "@prisma/client"
 import prisma from "@/lib/prisma"
 import { EventRepository } from "@/repository/event.repository"
 import type { EventListFilterParams, EventListType } from "@/lib/event.types"
 
+interface EventWithMedia extends Event {
+    banner?: EventMedia | null;
+    media?: EventMedia[];
+}
 export class EventService{
     constructor(private eventRepository: EventRepository) {}
 
-    async upsert(payload:EventCreateState):Promise<Event>{
+    async upsert(payload:EventCreateState, eventSlug?: string):Promise<Event>{
         try{
-            const slug = await generateSlug(payload.title, prisma.event, "event_slug");
-
-            const data: Prisma.EventCreateInput = {
+            const data: Omit<Prisma.EventCreateInput, "event_slug"> = {
                 title: payload.title,
                 description: payload.description,
                 startDate: payload.startDate ? new Date(payload.startDate).toISOString():null,
                 endDate: payload.endDate ? new Date(payload.endDate).toISOString() : null,
                 regStart: payload.regStart ? new Date(payload.regStart).toISOString() : null,
                 regEnd: payload.regEnd ? new Date(payload.regEnd).toISOString() : null,
-                status: payload.status,
                 venue: payload.venue,
-                event_slug: slug,
             };
 
-            return await this.eventRepository.create(data);
+            if (eventSlug) {
+                return await this.eventRepository.updateBySlug(eventSlug, data);
+            }
+
+            const slug = await generateSlug(payload.title, prisma.event, "event_slug");
+            return await this.eventRepository.create({
+                ...data,
+                status: payload.status,
+                event_slug: slug,
+            });
         }
         catch(err){
             if(err instanceof Error){
@@ -117,6 +127,39 @@ export class EventService{
             }
             throw Error("An unknown error occured.")
         }
+    }
+
+    async getEventBySlug(slug: string): Promise<EventWithMedia | null> {
+        try {
+            const event = await prisma.event.findUnique({
+                where: { event_slug: slug },
+                include: {
+                banner: true,
+                media: {
+                where: { kind: EVENT_MEDIA_KIND.SUPPORTING },
+                orderBy: { createdAt: "desc" },
+                },
+            }
+            });
+            return event;
+        } catch (err) {
+            if (err instanceof Error) {
+                throw Error(err.message);
+            }
+            throw Error("An unknown error occurred.");
+        }
+    }
+
+    async updateEventStatus(slug: string, status: EVENT_STATUS): Promise<Event> {
+        return this.eventRepository.updateBySlug(slug, { status });
+    }
+
+    async archiveEvent(slug: string): Promise<Event> {
+        return this.eventRepository.archiveBySlug(slug);
+    }
+
+    async deleteEvent(slug: string): Promise<Event> {
+        return this.eventRepository.deleteBySlug(slug);
     }
 
 }

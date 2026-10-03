@@ -1,11 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { ActionResult } from "@/lib/utils";
 import type { Event } from "@prisma/client";
 import { useRouter } from "next/navigation";
+import { uploadEventMedia } from "@/lib/event-media-client";
+import {
+  EVENT_BANNER_MAX_BYTES,
+  EVENT_BANNER_MIME_TYPES,
+  EVENT_SUPPORTING_FILE_MAX_BYTES,
+  EVENT_SUPPORTING_FILE_MAX_COUNT,
+  EVENT_SUPPORTING_FILES_MAX_BYTES,
+  EVENT_SUPPORTING_MIME_TYPES,
+} from "@/lib/event-media";
 
 type EventStatus = "DRAFT" | "PUBLISHED";
 
@@ -45,7 +54,30 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
   const [form, setForm] = useState<EventFormState>(defaultForm);
   const [selectedStatus, setSelectedStatus] = useState<EventStatus>("DRAFT");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof EventFormState | "status", string>>>({});
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
+  const bannerPreviewUrlRef = useRef<string | null>(null);
+  const [supportingFiles, setSupportingFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    return () => {
+      if (bannerPreviewUrlRef.current) {
+        URL.revokeObjectURL(bannerPreviewUrlRef.current);
+      }
+    };
+  }, []);
+
+  const selectBannerFile = (file: File | null) => {
+    if (bannerPreviewUrlRef.current) {
+      URL.revokeObjectURL(bannerPreviewUrlRef.current);
+    }
+    const previewUrl = file ? URL.createObjectURL(file) : null;
+    bannerPreviewUrlRef.current = previewUrl;
+    setBannerFile(file);
+    setBannerPreviewUrl(previewUrl);
+  };
 
   const previewDate = useMemo(() => {
     const start = form.startDate ? new Date(form.startDate) : null;
@@ -73,6 +105,26 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
   };
 
   const submitEventCreateForm = async (nextStatus: EventStatus) => {
+    if (isSubmitting) return;
+    if (bannerFile && (!EVENT_BANNER_MIME_TYPES.has(bannerFile.type) || bannerFile.size > EVENT_BANNER_MAX_BYTES)) {
+      toast.error("Choose a JPEG, PNG, or WebP banner that is 10 MB or smaller.");
+      return;
+    }
+    if (supportingFiles.length > EVENT_SUPPORTING_FILE_MAX_COUNT) {
+      toast.error(`Choose no more than ${EVENT_SUPPORTING_FILE_MAX_COUNT} supporting files.`);
+      return;
+    }
+    if (supportingFiles.some((file) =>
+      !EVENT_SUPPORTING_MIME_TYPES.has(file.type) || file.size > EVENT_SUPPORTING_FILE_MAX_BYTES
+    )) {
+      toast.error("Supporting files must use a supported format and be 20 MB or smaller.");
+      return;
+    }
+    if (supportingFiles.reduce((total, file) => total + file.size, 0) > EVENT_SUPPORTING_FILES_MAX_BYTES) {
+      toast.error("Supporting files must total 60 MB or less.");
+      return;
+    }
+    setIsSubmitting(true);
     setSelectedStatus(nextStatus);
 
     const payload: EventSubmitPayload = {
@@ -80,17 +132,36 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
       status: nextStatus,
     };
 
-    const result = await action(payload);
+    try {
+      const result = await action(payload);
+      if (!result.success) {
+        setFieldErrors(result.fieldErrors ?? {});
+        toast.error(result.error || "Unable to save the event.");
+        return;
+      }
 
-    if (!result.success) {
-      setFieldErrors(result.fieldErrors ?? {});
-      toast.error(result.error || "Unable to save the event.");
-      return;
+      setFieldErrors({});
+      let mediaError: string | null = null;
+      if (bannerFile || supportingFiles.length > 0) {
+        try {
+          await uploadEventMedia(result.data.event_slug, bannerFile, supportingFiles);
+        } catch (error) {
+          mediaError = error instanceof Error ? error.message : "Unable to upload event media.";
+        }
+      }
+
+      if (mediaError) {
+        toast.error(`Event created, but media upload failed: ${mediaError}`);
+      } else {
+        toast.success(nextStatus === "DRAFT" ? "Draft saved successfully." : "Event published successfully.");
+      }
+      router.push(`/dashboard/events/${encodeURIComponent(result.data.event_slug)}`);
+    } catch (error) {
+      console.error("Creating event failed", error);
+      toast.error(error instanceof Error ? error.message : "Unable to save the event.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setFieldErrors({});
-    toast.success(nextStatus === "DRAFT" ? "Draft saved successfully." : "Event published successfully.");
-    router.push(`/admin/dashboard/events/${result.data.event_slug}`);
   };
 
   return (
@@ -105,16 +176,18 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
           <button
             type="button"
             onClick={() => submitEventCreateForm("DRAFT")}
+            disabled={isSubmitting}
             className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition cursor-pointer hover:bg-zinc-50"
           >
-            Save draft
+            {isSubmitting && selectedStatus === "DRAFT" ? "Saving..." : "Save draft"}
           </button>
           <button
             type="button"
             onClick={() => submitEventCreateForm("PUBLISHED")}
+            disabled={isSubmitting}
             className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition cursor-pointer hover:bg-violet-500"
           >
-            Publish event
+            {isSubmitting && selectedStatus === "PUBLISHED" ? "Publishing..." : "Publish event"}
           </button>
         </div>
       </div>
@@ -228,6 +301,74 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
               </label>
             </div>
           </section>
+
+          <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-5 text-lg font-semibold text-zinc-900">Event media</h2>
+            <div className="space-y-5">
+              <label className="block text-sm font-medium text-zinc-700">
+                Event banner
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => {
+                    selectBannerFile(event.target.files?.[0] ?? null);
+                    event.target.value = "";
+                  }}
+                  className="mt-2 block w-full text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-50 file:px-3 file:py-2 file:font-semibold file:text-violet-700 hover:file:bg-violet-100"
+                />
+                <span className="mt-1 block text-xs font-normal text-zinc-500">
+                  JPEG, PNG, or WebP; maximum 10 MB. One banner per event.
+                </span>
+                {bannerFile && (
+                  <span className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-zinc-50 px-3 py-2 text-xs">
+                    <span className="truncate">{bannerFile.name}</span>
+                    <button type="button"                     onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      selectBannerFile(null);
+                    }}
+                    className="shrink-0 font-semibold text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </span>
+                )}
+              </label>
+
+              <label className="block text-sm font-medium text-zinc-700">
+                Supporting files
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/csv,text/plain"
+                  onChange={(event) => {
+                    setSupportingFiles((current) => [...current, ...Array.from(event.target.files ?? [])]);
+                    event.target.value = "";
+                  }}
+                  className="mt-2 block w-full text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-50 file:px-3 file:py-2 file:font-semibold file:text-violet-700 hover:file:bg-violet-100"
+                />
+                <span className="mt-1 block text-xs font-normal text-zinc-500">
+                  Up to 8 files, 20 MB each and 60 MB total. PDF, Office documents, CSV, text, or images.
+                </span>
+                {supportingFiles.map((file, index) => (
+                  <span key={`${file.name}-${index}`} className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-zinc-50 px-3 py-2 text-xs">
+                    <span className="truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setSupportingFiles((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                      }}
+                      className="shrink-0 font-semibold text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </span>
+                ))}
+              </label>
+            </div>
+          </section>
         </form>
 
         <aside className="space-y-6">
@@ -235,7 +376,10 @@ export default function EventCreateForm({ action }: EventCreateFormProps) {
             <h2 className="text-lg font-semibold text-zinc-900">Preview</h2>
 
             <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50">
-              <div className="h-28 bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-500" />
+              <div
+                className={`h-28 ${bannerPreviewUrl ? "bg-cover bg-center" : "bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-500"}`}
+                style={bannerPreviewUrl ? { backgroundImage: `url("${bannerPreviewUrl}")` } : undefined}
+              />
 
               <div className="space-y-4 p-4">
                 <div className="flex items-center justify-between gap-3">

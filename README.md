@@ -20,6 +20,20 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Event media storage
+
+Event banners and supporting files are stored in S3-compatible storage when
+`S3_BUCKET`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY` are configured. Set
+`S3_REGION` for the bucket region and `S3_ENDPOINT` for providers such as
+Cloudflare R2 or MinIO. If those required S3 settings are all unset, files are
+stored locally in `uploads/event-media`; `MEDIA_STORAGE_DIR` can point to a
+different directory. For deployed instances, use S3 or a durable shared volume
+for local storage so uploaded media survives restarts and is available to every
+application instance.
+
+Apply the event-media table migration with `npx prisma migrate deploy` before
+using event uploads.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
