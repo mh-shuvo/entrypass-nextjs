@@ -71,6 +71,18 @@ const eventWriteActions = async (
         };
     }
 
+
+    if (parsed.data.status === EVENT_STATUS.PUBLISHED && parsed.data.startDate && parsed.data.endDate) {
+        const startDate = new Date(parsed.data.startDate);
+        const endDate = new Date(parsed.data.endDate);
+        const now = new Date();
+        if (startDate <= now && endDate >= now) {
+            parsed.data.status = EVENT_STATUS.ONGOING;
+        }
+    }
+
+    console.log(parsed.data)
+
     const eventService = new EventService(new EventRepository())
 
     const result = await eventService.upsert(parsed.data, eventSlug);
@@ -117,7 +129,16 @@ const updateEventStatusAction = async (
     }
 
     try {
-        const event = await new EventService(new EventRepository()).updateEventStatus(slug, status);
+        const now = new Date();
+        const nextStatus =
+            status === EVENT_STATUS.PUBLISHED &&
+            access.event.startDate &&
+            access.event.endDate &&
+            access.event.startDate <= now &&
+            access.event.endDate >= now
+                ? EVENT_STATUS.ONGOING
+                : status;
+        const event = await new EventService(new EventRepository()).updateEventStatus(slug, nextStatus);
         revalidatePath(`/dashboard/events/${slug}`);
         revalidatePath("/dashboard/events");
         return { success: true, data: event };

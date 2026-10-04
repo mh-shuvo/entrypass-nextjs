@@ -10,7 +10,7 @@ export default async function AdminEventsPage({
   searchParams?:EventListFilterParams;
 }) {
   const eventService = new EventService(new EventRepository());
-  const params = (await searchParams) ?? {};
+  const params = (await searchParams) ?? {}; 
   const events: EventListType = await eventService.getAllEvents(params);
 
   return (

@@ -13,6 +13,7 @@ import {
 const eventStatuses: EventStatus[] = [
   "DRAFT",
   "PUBLISHED",
+  "ONGOING",
   "COMPLETED",
   "CANCELLED",
 ];
@@ -40,6 +41,7 @@ export default function EventDetailsActions({
           toast.error(result.error);
           return;
         }
+        setNextStatus(result.data.status);
         toast.success("Event status updated.");
         router.refresh();
       } catch (error) {

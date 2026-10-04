@@ -42,6 +42,7 @@ type EditableFields = {
   endDate: string;
   regStart: string;
   regEnd: string;
+  status?: EventStatus;
 };
 
 function dateTimeInputValue(value: string | null): string {
@@ -75,6 +76,7 @@ export default function EventDetailsClient({ event, defaultEditing }: EventDetai
     endDate: dateTimeInputValue(event.endDate),
     regStart: dateTimeInputValue(event.regStart),
     regEnd: dateTimeInputValue(event.regEnd),
+    status: event.status,
   });
 
   const updateField = (key: keyof EditableFields, value: string) => {
@@ -199,6 +201,7 @@ export default function EventDetailsClient({ event, defaultEditing }: EventDetai
         </section>
 
         <EventDetailsActions
+          key={event.status}
           slug={event.event_slug}
           status={event.status}
           onEdit={() => setIsEditing(true)}

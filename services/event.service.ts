@@ -23,6 +23,7 @@ export class EventService{
                 endDate: payload.endDate ? new Date(payload.endDate).toISOString() : null,
                 regStart: payload.regStart ? new Date(payload.regStart).toISOString() : null,
                 regEnd: payload.regEnd ? new Date(payload.regEnd).toISOString() : null,
+                status: payload.status,
                 venue: payload.venue,
             };
 
@@ -33,7 +34,6 @@ export class EventService{
             const slug = await generateSlug(payload.title, prisma.event, "event_slug");
             return await this.eventRepository.create({
                 ...data,
-                status: payload.status,
                 event_slug: slug,
             });
         }
