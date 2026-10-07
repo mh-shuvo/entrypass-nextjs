@@ -13,7 +13,7 @@ export default function EventCard({ event }: { event: Event }) {
                         inline-flex items-center rounded-md bg-blue-50 text-xs 
                         px-2 py-1 font-medium text-blue-600 ring-1 ring-inset 
                         inset-ring-blue-500/10
-                        ">{event.startDate.toLocaleDateString()}
+                        ">{event.startDate ? event.startDate.toLocaleDateString() : "Date TBD"}
                         </span>
                 </div>
                 <div className="flex justify-end">
