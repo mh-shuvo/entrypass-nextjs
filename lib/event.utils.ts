@@ -9,6 +9,14 @@ export const formatDate = (date: Date | null | undefined, options?: Intl.DateTim
   }).format(date);
 };
 
+export const extractTime = (date: Date | null | undefined) => {
+  if (!date) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+  }).format(date);
+};
+
 export const formatDateRange = (startDate: Date | null | undefined, endDate: Date | null | undefined) => {
   const sameDay = startDate?.toDateString() === endDate?.toDateString();
 
